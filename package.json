@@ -1,7 +1,7 @@
 {
   "name": "dummy-shop",
   "version": "0.0.1",
-  "description": "Dummy e-comerce order handling implementation (only use as a sandbox)",
+  "description": "Dummy e-commerce dev anonymizing worker (only use as a sandbox)",
   "main": "app.ts",
   "scripts": {
     "build": "tsc --outDir dist",
@@ -29,7 +29,7 @@
     "mongodb": "^6.16.0"
   },
   "devDependencies": {
-    "@types/node": "^22.15.17",
+    "@types/node": "^20.16.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

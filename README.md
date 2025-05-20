@@ -1,4 +1,4 @@
-## Dummy e-commerce order handling implementation (only use as a sandbox)
+## Dummy e-commerce dev anonymizing worker (only use as a sandbox)
 
 ## Quick start
 
