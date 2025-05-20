@@ -1,7 +1,7 @@
 import { Collection, Document } from "mongodb";
 import { hashString } from "./utils/fnv1a-hash";
 import { cleanup, registerShutdown } from "./utils/lifecycle";
-import { log } from "./utils/log";
+import { error, log, warn } from "./utils/log";
 import { getDbUrl } from "./utils/env";
 import { connectToMongoDBOrExit } from "./utils/db";
 
@@ -84,8 +84,21 @@ export function listenForChanges(
     }
   });
 
+  let busy = false;
   const interval = setInterval(async () => {
-    flushBuffer(targetCollection);
+    if (busy) {
+      warn(`Previous operation is still running, skipping`);
+      return;
+    }
+    busy = true;
+    try {
+      await flushBuffer(targetCollection);
+    } catch (err) {
+      error(
+        `Failed to flush buffer: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+    busy = false;
   }, INTERVAL);
 
   return interval;
@@ -106,6 +119,8 @@ async function main() {
   } else {
     const interval = listenForChanges(sourceCollection, targetCollection);
     registerShutdown(client, interval);
+    // dry run
+    await fullReindex(sourceCollection, targetCollection);
   }
 }
 
