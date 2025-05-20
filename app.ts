@@ -14,7 +14,7 @@ async function main() {
   const db = client.db();
 
   const collection = db.collection("customers");
-  log(`Connected to MongoDB, ${await collection.countDocuments()} documents`);
+  log(`Connected to MongoDB`);
 
   let busy = false;
   const interval = setInterval(async () => {
@@ -36,8 +36,8 @@ async function main() {
           line2: faker.location.secondaryAddress(),
           postcode: faker.location.zipCode(),
           city: faker.location.city(),
-          state: faker.location.state(),
-          country: faker.location.country(),
+          state: faker.location.state({ abbreviated: true }),
+          country: faker.location.countryCode(),
         },
         createdAt: new Date(),
       }));
