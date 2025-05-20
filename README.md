@@ -1,4 +1,4 @@
-## Dummy e-comerce order handling implementation (only use as a sendbox)
+## Dummy e-comerce order handling implementation (only use as a sandbox)
 
 ## Quick start
 

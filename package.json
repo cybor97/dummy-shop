@@ -1,7 +1,7 @@
 {
-  "name": "66607709-mukhametshyn-ruslan",
+  "name": "dummy-shop",
   "version": "0.0.1",
-  "description": "Backend test",
+  "description": "Dummy e-comerce order handling implementation (only use as a sandbox)",
   "main": "app.ts",
   "scripts": {
     "build": "tsc --outDir dist",
@@ -12,23 +12,26 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fundraiseup-test/66607709-mukhametshyn-ruslan.git"
+    "url": "git+https://github.com/cybor97/dummy-shop.git"
   },
-  "author": "",
+  "author": "cybor97",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/fundraiseup-test/66607709-mukhametshyn-ruslan/issues"
+    "url": "https://github.com/cybor97/dummy-shop.git/issues"
   },
-  "homepage": "https://github.com/fundraiseup-test/66607709-mukhametshyn-ruslan#readme",
+  "homepage": "https://github.com/cybor97/dummy-shop.git#readme",
+  "engines": {
+    "node": ">=20.16.0"
+  },
   "dependencies": {
     "@faker-js/faker": "^9.7.0",
     "dotenv": "^16.5.0",
-    "mongodb": "^6.16.0",
-    "typescript": "^5.8.3"
+    "mongodb": "^6.16.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.17",
     "prettier": "^3.5.3",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
