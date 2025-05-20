@@ -75,8 +75,29 @@ export function listenForChanges(
   targetCollection: Collection,
 ) {
   sourceCollection.watch().on("change", (e) => {
-    if (e.operationType === "insert") {
-      buffer.set(e.documentKey._id.toString(), e.fullDocument);
+    // according to the specification, delete operations are not supported
+    if (["insert", "update", "replace"].includes(e.operationType)) {
+      let id: string | null = null;
+      let delta: Document | null = null;
+      switch (e.operationType) {
+        case "insert":
+          id = e.documentKey._id.toString();
+          delta = e.fullDocument;
+          break;
+        case "update":
+          id = e.documentKey._id.toString();
+          delta = e.updateDescription.updatedFields;
+          break;
+        case "replace":
+          id = e.documentKey._id.toString();
+          delta = e.fullDocument;
+          break;
+      }
+      if (!id) {
+        error(`Unsupported event for operation type: ${e.operationType}`);
+        return;
+      }
+      buffer.set(id, delta);
       if (buffer.size > MAX_CHUNK_SIZE) {
         log(`Buffer size is ${buffer.size}, flushing`);
         flushBuffer(targetCollection);

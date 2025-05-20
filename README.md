@@ -52,4 +52,3 @@ yarn dist/sync --full-reindex
 
 ### ./sync.ts
 - ./sync.ts:76 potential overflow, review or consider not to use event emitter
-- ./sync.ts:77 missing `update` handling
