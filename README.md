@@ -47,8 +47,3 @@ Start sync (full reindex)
 ```
 yarn dist/sync --full-reindex
 ```
-
-## Issues
-
-### ./sync.ts
-- ./sync.ts:76 potential overflow, review or consider not to use event emitter

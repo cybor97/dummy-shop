@@ -4,6 +4,7 @@ import { cleanup, registerShutdown } from "./utils/lifecycle";
 import { error, log, warn } from "./utils/log";
 import { getDbUrl } from "./utils/env";
 import { connectToMongoDBOrExit } from "./utils/db";
+import { setupChangeStream, ChangeStreamHandler } from "./utils/change-stream";
 
 const MAX_CHUNK_SIZE = 1000;
 const INTERVAL = 1000;
@@ -70,43 +71,55 @@ async function fullReindex(
   }
 }
 
-export function listenForChanges(
+export async function listenForChanges(
   sourceCollection: Collection,
   targetCollection: Collection,
-) {
-  sourceCollection.watch().on("change", (e) => {
+): Promise<{ stop: () => void }> {
+  let flushInterval: NodeJS.Timeout | null = null;
+  let changeStreamHandler: ChangeStreamHandler | null = null;
+
+  const processChange = (change: any) => {
     // according to the specification, delete operations are not supported
-    if (["insert", "update", "replace"].includes(e.operationType)) {
+    if (["insert", "update", "replace"].includes(change.operationType)) {
       let id: string | null = null;
       let delta: Document | null = null;
-      switch (e.operationType) {
+      switch (change.operationType) {
         case "insert":
-          id = e.documentKey._id.toString();
-          delta = e.fullDocument;
+          id = change.documentKey._id.toString();
+          delta = change.fullDocument;
           break;
         case "update":
-          id = e.documentKey._id.toString();
-          delta = e.updateDescription.updatedFields;
+          id = change.documentKey._id.toString();
+          delta = change.updateDescription.updatedFields;
           break;
         case "replace":
-          id = e.documentKey._id.toString();
-          delta = e.fullDocument;
+          id = change.documentKey._id.toString();
+          delta = change.fullDocument;
           break;
       }
       if (!id) {
-        error(`Unsupported event for operation type: ${e.operationType}`);
+        error(`Unsupported event for operation type: ${change.operationType}`);
         return;
       }
+
       buffer.set(id, delta);
       if (buffer.size > MAX_CHUNK_SIZE) {
         log(`Buffer size is ${buffer.size}, flushing`);
-        flushBuffer(targetCollection);
+        void flushBuffer(targetCollection);
       }
     }
-  });
+  };
 
+  // Set up the change stream using the utility
+  changeStreamHandler = await setupChangeStream(
+    sourceCollection,
+    processChange,
+    { fullDocument: "updateLookup" },
+  );
+
+  // Set up periodic buffer flush
   let busy = false;
-  const interval = setInterval(async () => {
+  flushInterval = setInterval(async () => {
     if (busy) {
       warn(`Previous operation is still running, skipping`);
       return;
@@ -122,7 +135,18 @@ export function listenForChanges(
     busy = false;
   }, INTERVAL);
 
-  return interval;
+  // Return a cleanup function
+  return {
+    stop: () => {
+      if (changeStreamHandler) {
+        changeStreamHandler.stop();
+      }
+      if (flushInterval) {
+        clearInterval(flushInterval);
+        flushInterval = null;
+      }
+    },
+  };
 }
 
 async function main() {
@@ -138,8 +162,11 @@ async function main() {
     await cleanup(client);
     process.exit(0);
   } else {
-    const interval = listenForChanges(sourceCollection, targetCollection);
-    registerShutdown(client, interval);
+    const changeStreamHandler = await listenForChanges(
+      sourceCollection,
+      targetCollection,
+    );
+    registerShutdown(client, changeStreamHandler.stop);
     // dry run
     await fullReindex(sourceCollection, targetCollection);
   }

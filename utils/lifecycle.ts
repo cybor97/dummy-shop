@@ -1,19 +1,26 @@
 import { MongoClient } from "mongodb";
 import { error } from "./log";
 
+type CleanupResource = NodeJS.Timeout | (() => void);
+
 /**
  * Closes the MongoDB connection and exits the process
  * @param client MongoDB client
- * @param interval Optional interval to clear. Dummy, in case of more complex scheduling mechanism - cancel scheduled tasks
+ * @param resource Optional resource to clean up (interval to clear or function to call)
  */
 export async function cleanup(
   client: MongoClient,
-  interval: NodeJS.Timeout | null = null,
+  resource: CleanupResource | null = null,
 ) {
-  if (interval !== null) {
-    clearInterval(interval);
+  if (resource !== null) {
+    if (typeof resource === "function") {
+      resource();
+    } else {
+      clearInterval(resource);
+    }
   }
   try {
+    console.log("Closing MongoDB connection");
     await client.close();
   } catch (err) {
     error(
@@ -25,14 +32,12 @@ export async function cleanup(
 
 export function registerShutdown(
   client: MongoClient,
-  interval: NodeJS.Timeout | null = null,
+  resource: CleanupResource | null = null,
 ) {
   process.on("SIGINT", async () => {
-    console.log("Closing MongoDB connection");
-    await cleanup(client, interval);
+    await cleanup(client, resource);
   });
   process.on("SIGTERM", async () => {
-    console.log("Closing MongoDB connection");
-    await cleanup(client, interval);
+    await cleanup(client, resource);
   });
 }
