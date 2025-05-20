@@ -49,13 +49,17 @@ yarn dist/sync --full-reindex
 ```
 
 ## Issues
+
 ### ./app.ts
-* ./app.ts:13 ./sync.ts:96 connection error handling
-* ./app.ts:20 review `setInterval` usage, missing error handling
+- ./app.ts:20 review `setInterval` usage, missing error handling
+
 ### ./sync.ts
-* ./sync.ts:102 ./lifecycle.ts:10 missing error handling
-* ./sync.ts:76 missing dry run
-* ./sync.ts:76 potential overflow, review or consider not to use event emitter
-* ./sync.ts:77 missing `update` handling
+
+- ./sync.ts:102 ./lifecycle.ts:10 missing error handling
+- ./sync.ts:76 missing dry run
+- ./sync.ts:76 potential overflow, review or consider not to use event emitter
+- ./sync.ts:77 missing `update` handling
+
 ### ./lifecycle.ts
-* ./lifecycle.ts:5 review `interval` property lifecycle
+
+- ./lifecycle.ts:5 review `interval` property lifecycle

@@ -1,20 +1,19 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { faker } from "@faker-js/faker";
 
 import { registerShutdown } from "./utils/lifecycle";
 import { log, warn } from "./utils/log";
 import { getDbUrl } from "./utils/env";
+import { connectToMongoDBOrExit } from "./utils/db";
 
 const INTERVAL = 200;
 
 async function main() {
   const dbUri = getDbUrl();
+  const client = await connectToMongoDBOrExit(dbUri);
 
-  const client = await MongoClient.connect(dbUri);
   const db = client.db();
-
   const collection = db.collection("customers");
-  log(`Connected to MongoDB`);
 
   let busy = false;
   const interval = setInterval(async () => {

@@ -1,8 +1,9 @@
-import { Collection, Document, MongoClient } from "mongodb";
+import { Collection, Document } from "mongodb";
 import { hashString } from "./utils/fnv1a-hash";
 import { cleanup, registerShutdown } from "./utils/lifecycle";
 import { log } from "./utils/log";
 import { getDbUrl } from "./utils/env";
+import { connectToMongoDBOrExit } from "./utils/db";
 
 const MAX_CHUNK_SIZE = 1000;
 const INTERVAL = 1000;
@@ -92,10 +93,9 @@ export function listenForChanges(
 
 async function main() {
   const dbUri = getDbUrl();
+  const client = await connectToMongoDBOrExit(dbUri);
 
-  const client = await MongoClient.connect(dbUri);
   const db = client.db();
-
   const sourceCollection = db.collection("customers");
   const targetCollection = db.collection("customers_anonymised");
 
